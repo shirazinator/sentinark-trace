@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinark-Trace // Malicious Link & Redirection Scanner</title>
+    <style>
+        :root {
+            --bg-main: #0B0F19;
+            --bg-card: #111827;
+            --bg-input: #1F2937;
+            --border: #374151;
+            --text-main: #F9FAFB;
+            --text-muted: #9CA3AF;
+            --teal: #14B8A6;
+            --cyan: #06B6D4;
+            --green: #10B981;
+            --yellow: #F59E0B;
+            --red: #EF4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; padding: 2rem 1rem; }
+        .container { max-width: 960px; margin: 0 auto; }
+        
+        .header { text-align: center; margin-bottom: 2.5rem; }
+        .badge-title { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; background: rgba(20, 184, 166, 0.15); color: var(--teal); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.75rem; border: 1px solid rgba(20, 184, 166, 0.3); }
+        .header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; background: linear-gradient(135deg, #FFF, var(--teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { color: var(--text-muted); margin-top: 0.5rem; font-size: 1rem; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); }
+        
+        .input-group { position: relative; margin-bottom: 1rem; }
+        .input-group input { width: 100%; padding: 1rem 1.25rem; background: var(--bg-input); border: 2px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 1.05rem; transition: border-color 0.2s; outline: none; }
+        .input-group input:focus { border-color: var(--teal); }
+        
+        .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .btn { padding: 0.75rem 1.25rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
+        .btn-teal { background: var(--teal); color: #000; font-weight: 700; }
+        .btn-teal:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border); }
+
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .metric-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+        .metric-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
+        .metric-val { font-size: 1.6rem; font-weight: 800; margin-top: 0.25rem; }
+
+        .hops-container { margin-top: 1rem; }
+        .hop-card { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-left: 4px solid var(--teal); border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .hop-url { font-family: monospace; font-size: 0.9rem; word-break: break-all; }
+        .hop-badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: #374151; }
+
+        .flag-box { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+        .flag-box h4 { color: var(--red); margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .flag-box ul { padding-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; }
+
+        .footer { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="badge-title">SENTINARK-TRACE // PHISHING THREAT INTEL</div>
+        <h1>Malicious Link & Redirection Scanner</h1>
+        <p>Hop-by-Hop Redirection Unmasker • Lexical Phishing Heuristics • Domain DNS Forensics</p>
+    </div>
+
+    <!-- Input Card -->
+    <div class="card">
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Paste suspicious URL (e.g., bit.ly/3x or http://instagram.verify-support.xyz/login)..." autofocus>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-teal" onclick="runScan()">Scan URL Intel</button>
+            <button class="btn btn-secondary" onclick="loadSample('phish')">Test Phishing Sample</button>
+            <button class="btn btn-secondary" onclick="loadSample('safe')">Test Safe Sample</button>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">
+            🛡️ <strong>Safety Sandbox:</strong> The crawler only reads HTTP header metadata. JavaScript is never executed, and malware payloads are never downloaded.
+        </p>
+    </div>
+
+    <!-- Results Area -->
+    <div id="resultsArea" style="display: none;">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="font-size: 1.3rem;">Threat Assessment Dossier</h3>
+                    <p id="riskTierText" style="font-weight: 700; margin-top: 0.25rem;">--</p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">PHISHING RISK</div>
+                    <div id="threatScoreVal" style="font-size: 2.2rem; font-weight: 900;">--</div>
+                </div>
+            </div>
+
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Total Redirect Hops</div>
+                    <div id="mHops" class="metric-val">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Root Domain</div>
+                    <div id="mDomain" class="metric-val" style="font-size: 1.1rem; margin-top: 0.6rem;">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">DNS Status</div>
+                    <div id="mDNS" class="metric-val" style="font-size: 1.1rem; margin-top: 0.6rem;">--</div>
+                </div>
+            </div>
+
+            <!-- Redirection Hops -->
+            <div style="margin-top: 1rem;">
+                <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">🌐 Redirection Chain (Hops Unmasked)</h4>
+                <div id="hopsList" class="hops-container"></div>
+            </div>
+
+            <!-- Security Flags -->
+            <div id="flagsContainer" class="flag-box" style="display: none;">
+                <h4>🚨 Discovered Threat Vectors</h4>
+                <ul id="flagsList"></ul>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-top: 1.25rem;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.35rem;">🛡️ Recommended Security Action</h4>
+                <p id="actionText" style="color: var(--text-muted); font-size: 0.9rem;">--</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Sentinark Suite // Developed by Shiraz // Portfolio Cybersecurity Engineering
+    </div>
+</div>
+
+<script>
+async function runScan() {
+    const url = document.getElementById("urlInput").value.trim();
+    if (!url) return;
+
+    try {
+        const res = await fetch("/api/scan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: url })
+        });
+        const data = await res.json();
+        renderScan(data);
+    } catch(e) {
+        alert("Scan failed: " + e.message);
+    }
+}
+
+function renderScan(data) {
+    document.getElementById("resultsArea").style.display = "block";
+    const dossier = data.threat_dossier;
+
+    // Score
+    const scoreVal = document.getElementById("threatScoreVal");
+    scoreVal.innerText = dossier.threat_score + "/100";
+    if (dossier.threat_score >= 75) scoreVal.style.color = "var(--red)";
+    else if (dossier.threat_score >= 40) scoreVal.style.color = "var(--yellow)";
+    else scoreVal.style.color = "var(--green)";
+
+    document.getElementById("riskTierText").innerText = dossier.risk_tier;
+    document.getElementById("actionText").innerText = dossier.recommended_action;
+
+    document.getElementById("mHops").innerText = dossier.redirect_summary.hops_count;
+    document.getElementById("mDomain").innerText = data.heuristic_analysis.root_domain;
+    document.getElementById("mDNS").innerText = dossier.domain_intel.dns_status;
+
+    // Hops
+    const hopsList = document.getElementById("hopsList");
+    hopsList.innerHTML = "";
+    data.redirect_chain.forEach(h => {
+        const div = document.createElement("div");
+        div.className = "hop-card";
+        div.innerHTML = `
+            <div>
+                <span style="color: var(--teal); font-weight: 700; margin-right: 0.5rem;">Hop ${h.hop}:</span>
+                <span class="hop-url">${h.url}</span>
+            </div>
+            <span class="hop-badge">${h.status_code || 200}</span>
+        `;
+        hopsList.appendChild(div);
+    });
+
+    // Flags
+    const flagsContainer = document.getElementById("flagsContainer");
+    const flagsList = document.getElementById("flagsList");
+    flagsList.innerHTML = "";
+    if (dossier.flags && dossier.flags.length > 0) {
+        flagsContainer.style.display = "block";
+        dossier.flags.forEach(f => {
+            const li = document.createElement("li");
+            li.innerText = f;
+            flagsList.appendChild(li);
+        });
+    } else {
+        flagsContainer.style.display = "none";
+    }
+}
+
+function loadSample(type) {
+    if (type === 'phish') {
+        document.getElementById("urlInput").value = "http://instagram.com.account-verification-support.xyz/login?user=recover";
+    } else {
+        document.getElementById("urlInput").value = "https://github.com/shirazinator";
+    }
+    runScan();
+}
+</script>
+
+</body>
+</html>
