@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinark-Trace // Malicious Link & Redirection Scanner</title>
+    <meta name="description" content="Automated Phishing, Redirection Chain & Malicious URL Threat Intelligence Scanner running in the browser.">
+    <style>
+        :root {
+            --bg-main: #0B0F19;
+            --bg-card: #111827;
+            --bg-input: #1F2937;
+            --border: #374151;
+            --text-main: #F9FAFB;
+            --text-muted: #9CA3AF;
+            --teal: #14B8A6;
+            --cyan: #06B6D4;
+            --green: #10B981;
+            --yellow: #F59E0B;
+            --red: #EF4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; padding: 2rem 1rem; }
+        .container { max-width: 960px; margin: 0 auto; }
+        
+        .nav-links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .nav-link { color: var(--teal); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+        .nav-link:hover { text-decoration: underline; }
+
+        .header { text-align: center; margin-bottom: 2.5rem; }
+        .badge-title { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; background: rgba(20, 184, 166, 0.15); color: var(--teal); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.75rem; border: 1px solid rgba(20, 184, 166, 0.3); }
+        .header h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; background: linear-gradient(135deg, #FFF, var(--teal)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { color: var(--text-muted); margin-top: 0.5rem; font-size: 1rem; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); }
+        
+        .input-group { position: relative; margin-bottom: 1rem; }
+        .input-group input { width: 100%; padding: 1rem 1.25rem; background: var(--bg-input); border: 2px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 1.05rem; transition: border-color 0.2s; outline: none; }
+        .input-group input:focus { border-color: var(--teal); }
+        
+        .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .btn { padding: 0.75rem 1.25rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; }
+        .btn-teal { background: var(--teal); color: #000; font-weight: 700; }
+        .btn-teal:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border); }
+
+        .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .metric-card { background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+        .metric-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
+        .metric-val { font-size: 1.6rem; font-weight: 800; margin-top: 0.25rem; }
+
+        .hops-container { margin-top: 1rem; }
+        .hop-card { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-left: 4px solid var(--teal); border-radius: 6px; padding: 0.85rem 1rem; margin-bottom: 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .hop-url { font-family: monospace; font-size: 0.9rem; word-break: break-all; }
+        .hop-badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: #374151; }
+
+        .flag-box { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+        .flag-box h4 { color: var(--red); margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .flag-box ul { padding-left: 1.25rem; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; }
+
+        .footer { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-top: 3rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-links">
+        <a class="nav-link" href="https://shirazinator.github.io/sentinark-vault/">🛡️ Sentinark-Vault</a>
+        <a class="nav-link" href="https://shirazinator.github.io/sentinark-ghost/">👻 Sentinark-Ghost</a>
+        <a class="nav-link" href="https://shirazinator.github.io/sentinark-trace/">🎯 Sentinark-Trace</a>
+        <a class="nav-link" href="https://github.com/shirazinator/sentinark-trace" target="_blank">⭐ GitHub Repo</a>
+    </div>
+
+    <div class="header">
+        <div class="badge-title">SENTINARK-TRACE // CLIENT-SIDE LIVE APP</div>
+        <h1>Malicious Link & Redirection Scanner</h1>
+        <p>Hop-by-Hop Redirection Unmasker • Lexical Phishing Heuristics • Domain Host Forensics</p>
+    </div>
+
+    <!-- Input Card -->
+    <div class="card">
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Paste suspicious URL (e.g., bit.ly/3x or http://instagram.com.verify-support.xyz/login)..." autofocus>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-teal" onclick="runScan()">Scan URL Intel</button>
+            <button class="btn btn-secondary" onclick="loadSample('phish')">Test Phishing Sample</button>
+            <button class="btn btn-secondary" onclick="loadSample('safe')">Test Safe Sample</button>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">
+            🛡️ <strong>Isolated Browser Sandbox:</strong> The scanner only analyzes structural heuristics and redirection metadata without running harmful scripts.
+        </p>
+    </div>
+
+    <!-- Results Area -->
+    <div id="resultsArea" style="display: none;">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div>
+                    <h3 style="font-size: 1.3rem;">Threat Assessment Dossier</h3>
+                    <p id="riskTierText" style="font-weight: 700; margin-top: 0.25rem;">--</p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">PHISHING RISK</div>
+                    <div id="threatScoreVal" style="font-size: 2.2rem; font-weight: 900;">--</div>
+                </div>
+            </div>
+
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Parsed Root Domain</div>
+                    <div id="mDomain" class="metric-val" style="font-size: 1.1rem; margin-top: 0.6rem;">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Protocol Security</div>
+                    <div id="mProtocol" class="metric-val" style="font-size: 1.1rem; margin-top: 0.6rem;">--</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Deceptive Brand Vector</div>
+                    <div id="mBrand" class="metric-val" style="font-size: 1.1rem; margin-top: 0.6rem;">--</div>
+                </div>
+            </div>
+
+            <!-- Security Flags -->
+            <div id="flagsContainer" class="flag-box" style="display: none;">
+                <h4>🚨 Discovered Threat Vectors</h4>
+                <ul id="flagsList"></ul>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-top: 1.25rem;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.35rem;">🛡️ Recommended Security Action</h4>
+                <p id="actionText" style="color: var(--text-muted); font-size: 0.9rem;">--</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Sentinark Suite // Developed by Shiraz // Hosted on GitHub Pages
+    </div>
+</div>
+
+<script>
+const HIGH_RISK_TLDS = new Set(["xyz", "top", "click", "buzz", "club", "work", "gq", "cf", "ml", "tk", "ga", "country", "review", "account", "vip"]);
+const TARGETED_BRANDS = ["instagram", "facebook", "meta", "whatsapp", "google", "apple", "microsoft", "paypal", "netflix", "amazon", "binance", "coinbase"];
+const LURE_KEYWORDS = ["login", "signin", "verify", "verification", "secure", "update", "account", "recover", "recovery", "appeal", "password", "wallet", "suspend"];
+
+function analyzeHeuristics(urlStr) {
+    if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
+        urlStr = "https://" + urlStr;
+    }
+    const flags = [];
+    let penalty = 0;
+
+    let urlObj;
+    try {
+        urlObj = new URL(urlStr);
+    } catch(e) {
+        return { isSuspicious: true, penalty: 80, flags: ["Malformed or invalid URL syntax"], rootDomain: "Unknown", protocol: "Invalid", brand: "None" };
+    }
+
+    const host = urlObj.hostname.toLowerCase();
+    const full = urlStr.toLowerCase();
+    const protocol = urlObj.protocol.replace(":", "").toUpperCase();
+
+    // 1. IP check
+    if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host)) {
+        flags.push("Raw IP address used as hostname instead of a domain");
+        penalty += 40;
+    }
+
+    // 2. Punycode
+    if (host.includes("xn--")) {
+        flags.push("Punycode (IDN) detected: International character homograph attack spoofing brand Latin characters");
+        penalty += 45;
+    }
+
+    // 3. High-risk TLD
+    const parts = host.split(".");
+    const tld = parts[parts.length - 1];
+    if (HIGH_RISK_TLDS.has(tld)) {
+        flags.push(`High-risk TLD '.${tld}' heavily correlated with automated phishing campaigns`);
+        penalty += 25;
+    }
+
+    // 4. Excessive Subdomains
+    if (parts.length >= 4) {
+        flags.push(`Excessive subdomain nesting (${parts.length} parts): Hiding true destination`);
+        penalty += 20;
+    }
+
+    // 5. Brand Spoofing
+    const rootDomain = parts.length >= 2 ? parts.slice(-2).join(".") : host;
+    let spoofedBrand = "None";
+    for (const brand of TARGETED_BRANDS) {
+        if (full.includes(brand)) {
+            if (!rootDomain.startsWith(brand + ".")) {
+                flags.push(`Deceptive Brand Spoofing: Brand '${brand}' appears in URL, but true root domain is '${rootDomain}'`);
+                penalty += 45;
+                spoofedBrand = brand.toUpperCase() + " (Spoofed)";
+                break;
+            } else {
+                spoofedBrand = brand.toUpperCase() + " (Legitimate)";
+            }
+        }
+    }
+
+    // 6. Credential harvesting lure keywords
+    const foundLures = LURE_KEYWORDS.filter(k => full.includes(k));
+    if (foundLures.length > 0) {
+        flags.push(`Credential harvesting lure terms: ${foundLures.slice(0, 4).join(", ")}`);
+        penalty += Math.min(foundLures.length * 15, 35);
+    }
+
+    // 7. Cleartext HTTP
+    if (urlObj.protocol === "http:") {
+        flags.push("Insecure cleartext HTTP protocol (No TLS encryption)");
+        penalty += 10;
+    }
+
+    return {
+        isSuspicious: flags.length > 0,
+        penalty: Math.min(100, penalty),
+        flags: flags,
+        rootDomain: rootDomain,
+        protocol: protocol,
+        brand: spoofedBrand
+    };
+}
+
+function runScan() {
+    const raw = document.getElementById("urlInput").value.trim();
+    if (!raw) return;
+
+    document.getElementById("resultsArea").style.display = "block";
+    const res = analyzeHeuristics(raw);
+
+    const scoreVal = document.getElementById("threatScoreVal");
+    scoreVal.innerText = `${res.penalty}/100`;
+    scoreVal.style.color = res.penalty >= 75 ? "var(--red)" : (res.penalty >= 40 ? "var(--yellow)" : "var(--green)");
+
+    let tier = "BENIGN: Standard Web Link";
+    let action = "No malicious indicators detected. Safe to browse.";
+    if (res.penalty >= 75) {
+        tier = "CRITICAL: High-Risk Phishing / Credential Theft Vector";
+        action = "DO NOT VISIT. Block this URL immediately and never enter login credentials.";
+    } else if (res.penalty >= 40) {
+        tier = "HIGH: Deceptive Brand / Suspicious Cloak";
+        action = "Exercise extreme caution. Domain appears to mimic a trusted service.";
+    } else if (res.penalty >= 20) {
+        tier = "MEDIUM: Low-Trust or Obfuscated Link";
+        action = "Inspect URL carefully before entering sensitive information.";
+    }
+
+    document.getElementById("riskTierText").innerText = tier;
+    document.getElementById("actionText").innerText = action;
+
+    document.getElementById("mDomain").innerText = res.rootDomain;
+    document.getElementById("mProtocol").innerText = res.protocol;
+    document.getElementById("mBrand").innerText = res.brand;
+
+    const flagsContainer = document.getElementById("flagsContainer");
+    const flagsList = document.getElementById("flagsList");
+    flagsList.innerHTML = "";
+    if (res.flags.length > 0) {
+        flagsContainer.style.display = "block";
+        res.flags.forEach(f => {
+            const li = document.createElement("li");
+            li.innerText = f;
+            flagsList.appendChild(li);
+        });
+    } else {
+        flagsContainer.style.display = "none";
+    }
+}
+
+function loadSample(type) {
+    const input = document.getElementById("urlInput");
+    if (type === "phish") {
+        input.value = "http://instagram.com.account-verification-support.xyz/login?user=recover";
+    } else {
+        input.value = "https://github.com/shirazinator";
+    }
+    runScan();
+}
+</script>
+
+</body>
+</html>

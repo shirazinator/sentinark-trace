@@ -7,6 +7,9 @@
 [![ThreatIntel](https://img.shields.io/badge/Intel-Phishing%20%26%20Malware%20Defense-teal)](https://github.com/shirazinator)
 [![Sandbox](https://img.shields.io/badge/Crawler-Safe%20HTTP%20Sandbox-green)](https://en.wikipedia.org/wiki/Sandbox_(computer_security))
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?logo=github)](https://shirazinator.github.io/sentinark-trace/)
+
+> **🌐 Live Web Application (Zero-Installation):** [https://shirazinator.github.io/sentinark-trace/](https://shirazinator.github.io/sentinark-trace/)
 
 ---
 
