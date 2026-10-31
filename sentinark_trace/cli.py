@@ -18,11 +18,11 @@ RESET = "\033[0m"
 
 def print_banner():
     print(f"""{CYAN}{BOLD}
-   ____             __  _                  __     ______                    
+""" + r"""   ____             __  _                  __     ______                    
   / __/___ ___  __ / /_(_)__  ___ ________/ /__  /_  __/______ _________ ___
  _\ \/ -_) _ \/ // / __/ / _ \/ _ `/ __/ _  / _ `/  / / / __/ _ `/ __/ -_)_-<
 /___/\__/_//_/\_,_/\__/_/_//_/\_,_/_/  \_,_/\_,_/  /_/ /_/  \_,_/\__/\__/___/ 
-     Automated Phishing & Redirection Threat Intelligence Scanner
+     Automated Phishing & Redirection Threat Intelligence Scanner""" + f"""
 {RESET}""")
 
 
